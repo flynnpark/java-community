@@ -1,11 +1,10 @@
 package dev.flynnpark.community.controller;
 
-import dev.flynnpark.community.response.CommonResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,7 +22,7 @@ class HealthCheckControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private DataSource dataSource;
 
     @Test
@@ -52,7 +51,8 @@ class HealthCheckControllerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("An unexpected error occurred: Database connection is not valid or unavailable."))
+                .andExpect(jsonPath("$.message")
+                        .value("An unexpected error occurred: Database connection is not valid or unavailable."))
                 .andExpect(jsonPath("$.result").isEmpty());
     }
 }
