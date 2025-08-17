@@ -23,6 +23,6 @@ public class UserController {
     @PostMapping
     public ResponseEntity<CommonResponse<UserResponse>> registerUser(@Valid @RequestBody UserRegisterRequest request) {
         UserResponse userResponse = userService.registerUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(userResponse));
+        return ResponseEntity.status(HttpStatus.CREATED).body(CommonResponse.success(HttpStatus.CREATED.value(), "User registered successfully", userResponse));
     }
 }

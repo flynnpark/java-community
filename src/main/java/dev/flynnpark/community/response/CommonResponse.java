@@ -14,12 +14,16 @@ public class CommonResponse<T> {
     private String message;
     private T result;
 
+    public static <T> CommonResponse<T> success(int code, String message, T result) {
+        return new CommonResponse<>(code, message, result);
+    }
+
     public static <T> CommonResponse<T> success(T result) {
-        return new CommonResponse<>(200, "Success", result);
+        return success(200, "Success", result);
     }
 
     public static <T> CommonResponse<T> success() {
-        return new CommonResponse<>(200, "Success", null);
+        return success(200, "Success", null);
     }
 
     public static <T> CommonResponse<T> error(int code, String message) {
