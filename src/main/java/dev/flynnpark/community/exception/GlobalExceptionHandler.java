@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 
 @ControllerAdvice
@@ -46,5 +47,14 @@ public class GlobalExceptionHandler {
                 errorMessage
         );
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<CommonResponse<?>> handleAuthenticationException(AuthenticationException ex) {
+        CommonResponse<?> response = CommonResponse.error(
+                HttpStatus.UNAUTHORIZED.value(),
+                "인증에 실패했습니다."
+        );
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
     }
 }
