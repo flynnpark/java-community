@@ -49,6 +49,12 @@ Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템
 - **문제 원인**: `@WebMvcTest`가 `SecurityConfig`를 로드하면서, 테스트에 필요 없는 `JwtTokenProvider`와 같은 Bean을 찾지 못해 발생한 컨텍스트 로딩 실패가 주 원인이었습니다.
 - **해결 과정**: `@Import` 어노테이션을 사용해 보거나 `GlobalExceptionHandler`를 직접 주입하는 등 여러 시도를 거쳤습니다. 최종적으로 `@WebMvcTest`에서 `SecurityAutoConfiguration`을 제외하는 것이 가장 효과적임을 발견하고 수정하여 모든 테스트를 통과시켰습니다.
 
+### 2.4. Swagger (OpenAPI) 문서화 도입
+
+- **의존성 추가**: `build.gradle`에 `springdoc-openapi-starter-webmvc-ui` 라이브러리를 추가하여 Swagger UI를 연동했습니다.
+- **보안 설정 업데이트**: `SecurityConfig`에 Swagger UI 관련 엔드포인트(`v3/api-docs/**`, `/swagger-ui/**`, `/swagger-ui.html`)를 `permitAll()` 목록에 추가하여 인증 없이 접근 가능하도록 설정했습니다.
+- **접근 방법**: 애플리케이션 실행 후 `http://localhost:8080/swagger-ui.html`을 통해 API 문서를 확인할 수 있도록 했습니다.
+
 ---
 
 ## 3. 주요 학습 및 교훈

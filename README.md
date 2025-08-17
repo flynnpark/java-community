@@ -16,9 +16,17 @@
   - 사용자 회원가입 API
   - 표준화된 API 응답 형식 (`CommonResponse`)
   - 전역 예외 처리 (`GlobalExceptionHandler`)
+- **API 문서**
+  - `springdoc-openapi`를 이용한 Swagger UI 자동 생성
 - **테스트**
   - JUnit5를 사용한 서비스 및 컨트롤러 단위 테스트
   - Spring Security 환경에서의 테스트 코드 작성 및 디버깅
+
+## 📖 API 문서
+
+애플리케이션 실행 후, 웹 브라우저에서 다음 URL로 접속하여 API 명세를 확인할 수 있습니다.
+
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
 
 ## 🛠️ 기술 스택
 
