@@ -1,93 +1,97 @@
-# 프로젝트 요약: Java Community 애플리케이션
+# 프로젝트 문서: Java Community
 
-이 문서는 Gemini CLI 에이전트가 `java-community` Spring Boot 애플리케이션에서 수행한 작업을 요약합니다.
-
-## 프로젝트 구조 개요
-
-이 프로젝트는 Gradle 기반의 Spring Boot 애플리케이션입니다. 주요 구성 요소는 다음과 같습니다:
-- **`src/main/java/dev/flynnpark/community/`**: 주요 Java 소스 디렉토리.
-    - `JavaCommunityApplication.java`: Spring Boot 애플리케이션 진입점.
-    - `controller/HealthCheckController.java`: 헬스 체크를 위한 REST 컨트롤러.
-    - `exception/GlobalExceptionHandler.java`: 애플리케이션의 전역 예외 처리기.
-    - `response/CommonResponse.java`: 표준화된 API 응답을 위한 제네릭 클래스.
-- **`src/main/resources/application.properties`**: Spring Boot 설정 파일.
-- **`src/test/java/dev/flynnpark/community/`**: 테스트 소스 디렉토리.
-
-## 수행 작업
-
-주요 작업은 프로젝트 구조를 이해하고 핵심 모듈에 대한 적절한 단위 테스트를 구현하는 것이었습니다.
-
-### 1. 단위 테스트 구현
-
-다음 모듈에 대한 단위 테스트가 생성되었습니다:
-
--   **`CommonResponseTest.java`**:
-    -   `success()`, `success(T data)`, `error(int code, String message)` 정적 팩토리 메서드의 기능을 검증했습니다.
-    -   `code`, `message`, `result` 필드 할당이 올바른지 확인했습니다.
-
--   **`HealthCheckControllerTest.java`**:
-    -   `@WebMvcTest`를 사용하여 `/healthcheck` 엔드포인트를 테스트했습니다.
-    -   `@MockitoBean`을 사용하여 `DataSource` 종속성을 모의하여 데이터베이스 연결 시나리오(성공 및 실패)를 시뮬레이션했습니다.
-    -   올바른 HTTP 상태, 콘텐츠 유형 및 JSON 응답 구조(`code`, `message`, `result`)를 어설션했습니다.
-
--   **`GlobalExceptionHandlerTest.java`**:
-    -   `GlobalExceptionHandler` 클래스를 인스턴스화하고 `handleAllExceptions` 메서드를 호출하여 직접 단위 테스트하도록 리팩토링했습니다. 이 접근 방식은 예외 처리 로직에 대한 보다 집중적인 단위 테스트를 위해 Spring MVC 복잡성을 우회합니다.
-    -   일반 `RuntimeException`이 올바르게 잡히고 `HttpStatus.INTERNAL_SERVER_ERROR` 및 적절한 오류 메시지와 함께 `CommonResponse`로 변환되는지 어설션했습니다.
-
-### 2. 디버깅 및 개선
-
-테스트 단계에서 여러 문제가 발생했으며 해결되었습니다:
-
--   **`CommonResponse` 구조 불일치**: `CommonResponse`의 `success` 정적 팩토리 메서드와 `code`, `message`, `result` 필드 간의 매핑에 대한 초기 이해 부족으로 인해 초기 테스트가 실패했습니다. `CommonResponse.java` 파일을 다시 읽고 그에 따라 테스트 어설션을 업데이트하여 수정했습니다.
--   **`HealthCheckController` 종속성**: `HealthCheckController`의 `DataSource` 종속성으로 인해 `@WebMvcTest`에서 `NoSuchBeanDefinitionException`이 발생했습니다. `@MockitoBean`을 도입하여 `DataSource`를 모의하여 해결했습니다.
--   **`GlobalExceptionHandlerTest` 로직**: `GlobalExceptionHandler`에 대한 초기 `@WebMvcTest` 설정은 예상된 `RuntimeException` 대신 `NoResourceFoundException`을 발생시켰습니다. 이는 컨트롤러 메서드 호출 전에 Spring의 `DispatcherServlet`이 정적 리소스 해결을 처리하기 때문이었습니다. 테스트는 `GlobalExceptionHandler`의 메서드를 직접 단위 테스트하도록 리팩토링되어 올바른 예외 처리 로직이 검증되도록 했습니다.
--   **`getBody() may return null` 경고**: `GlobalExceptionHandlerTest.java`에서 `responseEntity.getBody()`가 `null`을 반환할 수 있다는 정적 분석 경고는 `Objects.requireNonNull()`을 사용하여 해당 지점에서 `null`이 아님을 명시적으로 어설션하여 해결했습니다.
-
-### 3. 테스트 환경 설정
-
-테스트 환경 설정 및 디버깅 과정에서 다음과 같은 중요한 사항들을 알게 되었습니다:
-
--   **Spring Security와 `@WebMvcTest`**: `@WebMvcTest`는 웹 계층만 로드하므로, Spring Security가 활성화된 경우 테스트가 `403 Forbidden` 오류로 실패할 수 있습니다. 이를 해결하기 위해 `@WebMvcTest`의 `excludeAutoConfiguration` 속성을 사용하여 `SecurityAutoConfiguration` 및 `UserDetailsServiceAutoConfiguration`을 제외하거나, 테스트 환경에 맞게 보안 설정을 명시적으로 구성해야 합니다.
--   **`MockBean`과 `MockitoBean`**: `@MockBean` 어노테이션은 더 이상 사용되지 않으며, `MockitoBean`이 권장되는 대체재입니다. 특히 최신 Spring 버전에서는 `org.springframework.test.context.bean.override.mockito.MockitoBean` 패키지에 위치할 수 있습니다.
--   **`MockMvc` 테스트 디버깅**: `MockMvc` 테스트에서 `andDo(print())`를 사용하면 요청 및 응답에 대한 자세한 정보를 출력하여 디버깅에 매우 유용합니다. 그러나 이 출력은 빌드 도구(예: Gradle)에 의해 캡처될 수 있으므로, 콘솔에서 직접 확인하려면 테스트 보고서를 확인하거나 `--info` 옵션과 같은 추가 빌드 명령을 사용해야 할 수 있습니다.
-
-### 4. 빌드 및 테스트 상태
-
--   모든 경고를 수정한 후 프로젝트가 성공적으로 빌드되었으며, 모든 테스트가 통과했습니다.
--   빌드 과정에서 `OpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended` 경고가 발생했지만, 이는 JVM 수준의 경고로 프로젝트 코드와 직접적인 관련은 없습니다.
-
-### 5. Import 정리 및 정렬
-
--   현재 프로젝트에는 import를 자동으로 정리하거나 정렬하는 Gradle 플러그인이 구성되어 있지 않습니다.
--   사용자의 요청에 따라 IDE 기능을 사용하여 import를 정리하는 것으로 결정했습니다.
-
-## Git 커밋 컨벤션
-
-이 프로젝트의 Git 커밋 메시지는 다음 컨벤션을 따릅니다:
-
--   **형식**: `<이모지> <제목>`
-    -   제목은 50자 이내의 간결한 요약이어야 합니다.
--   **본문**: 제목 다음에는 빈 줄을 두고, 변경 사항에 대한 자세한 설명을 글머리 기호 목록으로 작성합니다.
-    -   각 항목은 `-`로 시작합니다.
-    -   변경 사항의 *내용*보다는 *이유*에 초점을 맞춥니다.
--   **언어**: 한국어 사용을 권장합니다.
--   **이모지 컨벤션**:
-
-    -   `✨`: 새로운 기능 추가
-    -   `🐛`: 버그 수정
-    -   `♻️`: 코드 리팩토링 (기능 변경 없음)
-    -   `📝`: 문서 변경
-    -   `🚀`: 성능 개선
-    -   `✅`: 테스트 코드 추가 또는 수정
-    -   `📦`: 빌드 시스템 또는 외부 종속성 변경
-    -   `👷`: CI 설정 변경
-    -   `⏪`: 이전 커밋 되돌리기
-    -   `🗑️`: 기타 자잘한 변경 (빌드 프로세스, 보조 도구 등)
-
-## 결론
-
-이 프로젝트는 이제 핵심 모듈에 대한 포괄적인 단위 테스트 세트를 갖추고 있으며, `CommonResponse`, `HealthCheckController`, `GlobalExceptionHandler` 구성 요소의 정확성과 안정성을 보장합니다. 모든 테스트는 현재 통과합니다.
+이 문서는 Gemini CLI 에이전트와 함께 진행하는 `java-community` Spring Boot 사이드 프로젝트의 개발 과정을 기록합니다.
 
 ---
 
-**참고:** 이 문서는 사용자 요청에 따라 한국어로 작성되었습니다. 향후 모든 응답은 한국어로 제공됩니다.
+## 1. 프로젝트 개요
+
+### 1.1. 목표
+
+Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템을 갖춘 커뮤니티 백엔드 API를 구축하는 것을 목표로 하는 학습용 프로젝트입니다.
+
+### 1.2. 기술 스택
+
+- **언어**: Java 24
+- **프레임워크**: Spring Boot 3.5.4
+- **데이터베이스**: MySQL (운영), H2 (테스트)
+- **인증**: Spring Security, JWT (jjwt 라이브러리)
+- **빌드 도구**: Gradle
+
+### 1.3. 주요 기능
+
+- 사용자 회원가입
+- JWT 토큰 기반 로그인/로그아웃
+- API 헬스체크
+- 표준화된 API 응답 형식
+- 전역 예외 처리
+
+---
+
+## 2. 개발 및 디버깅 로그
+
+### 2.1. 초기 환경 설정 및 단위 테스트
+
+- `CommonResponse`, `HealthCheckController`, `GlobalExceptionHandler` 등 핵심 모듈에 대한 단위 테스트를 구현했습니다.
+- 테스트 과정에서 `DataSource` 의존성 문제, `GlobalExceptionHandler` 테스트 방식의 어려움 등 초기 문제들을 해결했습니다.
+
+### 2.2. 로그인 기능 구현 (Spring Security & JWT)
+
+- **의존성 추가**: `build.gradle`에 `spring-boot-starter-security`와 `jjwt` 라이브러리를 추가했습니다.
+- **엔티티 수정**: `User` 엔티티에 사용자의 권한(Role)을 저장하기 위한 `roles` 필드를 추가했습니다.
+- **서비스 구현**: `UserService`에서 회원가입 시 `ROLE_USER` 권한을 기본으로 부여하도록 수정했으며, `CustomUserDetailsService`가 사용자의 권한 정보를 올바르게 로드하도록 구현했습니다.
+- **JWT 구현**: `JwtTokenProvider`를 통해 토큰 생성 및 검증 로직을 구현하고, `JwtAuthenticationFilter`를 통해 매 요청마다 토큰을 검사하도록 했습니다.
+- **보안 설정**: `SecurityConfig`에서 CSRF 비활성화, 세션 정책을 STATELESS로 설정하고, 회원가입 및 로그인 API를 제외한 모든 요청에 인증을 요구하도록 HTTP 보안 규칙을 설정했습니다.
+
+### 2.3. 테스트 코드 리팩토링 및 디버깅
+
+- Spring Security 도입 후 발생한 테스트 실패 문제를 해결하는 데 많은 노력을 기울였습니다.
+- **문제 원인**: `@WebMvcTest`가 `SecurityConfig`를 로드하면서, 테스트에 필요 없는 `JwtTokenProvider`와 같은 Bean을 찾지 못해 발생한 컨텍스트 로딩 실패가 주 원인이었습니다.
+- **해결 과정**: `@Import` 어노테이션을 사용해 보거나 `GlobalExceptionHandler`를 직접 주입하는 등 여러 시도를 거쳤습니다. 최종적으로 `@WebMvcTest`에서 `SecurityAutoConfiguration`을 제외하는 것이 가장 효과적임을 발견하고 수정하여 모든 테스트를 통과시켰습니다.
+
+---
+
+## 3. 주요 학습 및 교훈
+
+이번 프로젝트를 진행하며 다음과 같은 중요한 기술적 교훈을 얻었습니다.
+
+- **`@WebMvcTest`와 Spring Security의 상호작용**
+  - 공개된(public) API 엔드포인트를 테스트할 때, `@WebMvcTest`는 전체 보안 설정을 로드하려고 시도하여 테스트 실패를 유발할 수 있습니다.
+  - **해결책**: `@WebMvcTest(excludeAutoConfiguration = SecurityAutoConfiguration.class)`와 같이 `SecurityAutoConfiguration`을 명시적으로 제외하여, 테스트 시에는 Spring Security의 필터 체인을 비활성화하는 것이 가장 효과적이고 깔끔한 방법입니다.
+
+- **`@WebMvcTest`와 `@ControllerAdvice`의 동작 방식**
+  - `@WebMvcTest`는 테스트 대상 컨트롤러와 동일한 패키지 또는 그 상위 패키지에 위치한 `@ControllerAdvice` Bean(`GlobalExceptionHandler` 등)을 자동으로 스캔하여 로드합니다.
+  - 초기 테스트 실패의 근본 원인은 `@ControllerAdvice`를 찾지 못해서가 아니라, `SecurityConfig`와의 충돌로 인해 테스트 애플리케이션 컨텍스트가 제대로 구성되지 못했기 때문이었습니다.
+
+- **라이브러리 API의 변경사항 준수**
+  - `jjwt` 라이브러리가 0.12.x 버전으로 업데이트되면서 빌더 API가 변경되었습니다. `setExpiration()`과 같은 기존 `set` 접두사 메서드들이 deprecated 되고, `expiration()`과 같이 필드명과 동일한 메서드 이름으로 대체되었습니다.
+  - 라이브러리 버전을 올릴 때는 항상 공식 문서나 릴리즈 노트를 통해 변경된 API(Breaking Changes)가 있는지 확인하는 습관이 중요합니다.
+
+- **코드 청결성의 중요성**
+  - 사용되지 않는 `import` 구문은 코드 가독성을 해치고 잠재적인 혼란을 야기할 수 있습니다. IDE의 `Optimize Imports` 기능을 활용하거나 주기적인 코드 리뷰를 통해 코드를 항상 최적의 상태로 깔끔하게 유지하는 것이 좋습니다.
+
+---
+
+## 4. 프로젝트 컨벤션
+
+### 4.1. Git 커밋 컨벤션
+
+- **형식**: `<이모지> <제목>` (예: `✨ 로그인 기능 구현`)
+- **본문**: 변경 사항의 이유를 중심으로 글머리 기호 목록으로 작성합니다.
+- **언어**: 한국어
+- **이모지 가이드**:
+    - `✨`: 새로운 기능 추가
+    - `🐛`: 버그 수정
+    - `♻️`: 코드 리팩토링
+    - `📝`: 문서 변경
+    - `🚀`: 성능 개선
+    - `✅`: 테스트 코드 관련
+    - `📦`: 빌드 및 의존성
+
+### 4.2. 언어 컨벤션
+
+- 이 프로젝트의 모든 코드 주석, 커밋 메시지, 문서, 그리고 Gemini 에이전트와의 모든 소통은 한국어로 작성하는 것을 원칙으로 합니다.
+
+---
+
+*이 문서는 Gemini 에이전트와 함께 작업하며 지속적으로 업데이트됩니다.*
