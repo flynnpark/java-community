@@ -4,6 +4,7 @@ import dev.flynnpark.community.user.dto.UserRegisterRequest;
 import dev.flynnpark.community.user.dto.UserResponse;
 import dev.flynnpark.community.user.entity.User;
 import dev.flynnpark.community.user.repository.UserRepository;
+import java.util.Collections;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ public class UserService {
                 .email(request.getEmail())
                 .nickname(request.getNickname())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .roles(Collections.singletonList("ROLE_USER"))
                 .build();
 
         User savedUser = userRepository.save(user);

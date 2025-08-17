@@ -3,6 +3,9 @@ package dev.flynnpark.community.user.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 @Getter
@@ -24,4 +27,9 @@ public class User {
     @Column(nullable = false)
     private String password; // Hashed password
 
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    @Builder.Default
+    private List<String> roles = new ArrayList<>();
 }
