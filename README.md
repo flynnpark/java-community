@@ -14,13 +14,30 @@
   - BCrypt를 사용한 안전한 비밀번호 암호화
 - **API**
   - 사용자 회원가입 API
+  - 게시글 생성, 목록 조회(페이지네이션), 상세 조회 API
   - 표준화된 API 응답 형식 (`CommonResponse`)
   - 전역 예외 처리 (`GlobalExceptionHandler`)
 - **API 문서**
   - `springdoc-openapi`를 이용한 Swagger UI 자동 생성
-- **테스트**
-  - JUnit5를 사용한 서비스 및 컨트롤러 단위 테스트
-  - Spring Security 환경에서의 테스트 코드 작성 및 디버깅
+- **개발 환경**
+  - `spring-boot-devtools`를 이용한 핫 리로딩 적용
+  - Docker Compose를 활용한 로컬 MySQL 데이터베이스 환경 구축
+
+## 🚀 로컬에서 실행하기
+
+1.  **데이터베이스 실행**
+    - Docker가 설치되어 있어야 합니다.
+    - 프로젝트 루트 디렉토리에서 아래 명령어를 실행하여 MySQL 컨테이너를 시작합니다.
+    ```bash
+    docker-compose up -d db
+    ```
+
+2.  **애플리케이션 실행**
+    - 아래 명령어를 실행하여 Spring Boot 애플리케이션을 시작합니다.
+    ```bash
+    ./gradlew bootRun
+    ```
+    - `spring-boot-devtools`가 적용되어 있어, 소스 코드 변경 시 자동으로 재시작됩니다.
 
 ## 📖 API 문서
 
@@ -33,8 +50,9 @@
 - **언어**: Java 24
 - **프레임워크**: Spring Boot 3.5.6
 - **인증/인가**: Spring Security, JWT (jjwt 라이브러리)
-- **데이터베이스**: MySQL (운영), H2 (테스트)
+- **데이터베이스**: MySQL (운영/개발), H2 (테스트)
 - **빌드 도구**: Gradle
+- **기타**: spring-boot-devtools, springdoc-openapi, Docker
 
 ## 📝 개발 및 학습 로그
 

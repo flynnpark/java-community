@@ -14,7 +14,7 @@ Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템
 
 - **언어**: Java 24
 - **프레임워크**: Spring Boot 3.5.6
-- **데이터베이스**: MySQL (운영), H2 (테스트)
+- **데이터베이스**: MySQL (운영/개발), H2 (테스트)
 - **인증**: Spring Security, JWT (jjwt 라이브러리)
 - **빌드 도구**: Gradle
 
@@ -22,9 +22,11 @@ Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템
 
 - 사용자 회원가입
 - JWT 토큰 기반 로그인/로그아웃
+- 게시글 생성, 목록 조회(페이지네이션), 상세 조회
 - API 헬스체크
 - 표준화된 API 응답 형식
 - 전역 예외 처리
+- 핫 리로딩 (Hot Reloading)
 
 ---
 
@@ -55,6 +57,21 @@ Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템
 - **보안 설정 업데이트**: `SecurityConfig`에 Swagger UI 관련 엔드포인트(`v3/api-docs/**`, `/swagger-ui/**`, `/swagger-ui.html`)를 `permitAll()` 목록에 추가하여 인증 없이 접근 가능하도록 설정했습니다.
 - **접근 방법**: 애플리케이션 실행 후 `http://localhost:8080/swagger-ui.html`을 통해 API 문서를 확인할 수 있도록 했습니다.
 
+### 2.5. 게시글 API 구현 (목록/상세 조회)
+
+- 페이지네이션을 지원하는 게시글 목록 조회 API (`GET /api/v1/posts`)를 구현했습니다.
+- Spring Data JPA의 `Pageable` 객체를 사용하여 페이지 번호, 페이지 크기, 정렬 순서를 쿼리 파라미터로 받을 수 있도록 했습니다. (예: `?page=0&size=10&sort=createdAt,desc`)
+- 게시글 ID를 받아 특정 게시글의 상세 정보를 조회하는 API (`GET /api/v1/posts/{id}`)를 구현했습니다.
+- `@PathVariable`을 사용하여 URL 경로에서 게시글 ID를 추출했습니다.
+- `SecurityConfig`를 수정하여 게시글 조회 관련 API(`GET /api/v1/posts/**`)는 인증 없이 호출할 수 있도록 `permitAll()` 설정을 추가했습니다.
+
+### 2.6. 로컬 개발 환경 개선
+
+- **데이터베이스 변경 (H2 -> MySQL)**: 로컬 개발 환경의 데이터베이스를 인메모리 H2에서 Docker를 이용한 MySQL로 변경하여 운영 환경과 유사한 환경에서 개발을 진행하도록 했습니다.
+- `docker-compose.yml`에 정의된 MySQL 서비스를 사용하도록 `application.properties`의 데이터소스 설정을 변경했습니다.
+- **환경 변수 도입**: 데이터베이스 연결 정보(URL, username, password)를 하드코딩하는 대신, `${DB_URL:기본값}`과 같은 형태로 환경 변수에서 값을 읽어오도록 `application.properties`를 리팩토링했습니다. 이를 통해 소스 코드 변경 없이 외부에서 설정을 주입할 수 있게 되었습니다.
+- **핫 리로딩 적용**: `build.gradle`에 `spring-boot-devtools` 의존성을 추가하여 핫 리로딩(Hot Reloading) 기능을 활성화했습니다. 이를 통해 코드 변경 시 애플리케이션이 자동으로 재시작되어 개발 생산성을 크게 향상시켰습니다.
+
 ---
 
 ## 3. 주요 학습 및 교훈
@@ -69,9 +86,14 @@ Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템
   - `@WebMvcTest`는 테스트 대상 컨트롤러와 동일한 패키지 또는 그 상위 패키지에 위치한 `@ControllerAdvice` Bean(`GlobalExceptionHandler` 등)을 자동으로 스캔하여 로드합니다.
   - 초기 테스트 실패의 근본 원인은 `@ControllerAdvice`를 찾지 못해서가 아니라, `SecurityConfig`와의 충돌로 인해 테스트 애플리케이션 컨텍스트가 제대로 구성되지 못했기 때문이었습니다.
 
-- **라이브러리 API의 변경사항 준수**
+- **라이브러리 버전 호환성의 중요성**
   - `jjwt` 라이브러리가 0.12.x 버전으로 업데이트되면서 빌더 API가 변경되었습니다. `setExpiration()`과 같은 기존 `set` 접두사 메서드들이 deprecated 되고, `expiration()`과 같이 필드명과 동일한 메서드 이름으로 대체되었습니다.
-  - 라이브러리 버전을 올릴 때는 항상 공식 문서나 릴리즈 노트를 통해 변경된 API(Breaking Changes)가 있는지 확인하는 습관이 중요합니다.
+  - Spring Boot `3.5.6` 버전에서 `springdoc-openapi:2.5.0` 라이브러리 사용 시, API 문서 페이지 접근 시 `NoSuchMethodError`가 발생하는 호환성 문제를 발견했습니다. `springdoc-openapi` 버전을 `2.8.13`으로 업데이트하여 문제를 해결했습니다.
+  - **교훈**: 라이브러리 버전을 올릴 때는 항상 공식 문서나 릴리즈 노트를 통해 변경된 API(Breaking Changes)가 있는지 확인하는 습관이 중요합니다. 특히 Spring Boot와 같이 여러 라이브러리들의 의존성을 관리하는 프레임워크의 버전을 변경할 때는, 다른 라이브러리들과의 호환성을 반드시 확인해야 합니다.
+
+- **환경 변수를 활용한 설정 관리**
+  - 데이터베이스 접속 정보와 같은 민감하거나 환경에 따라 달라지는 설정은 `application.properties`에 하드코딩하기보다, 환경 변수를 통해 주입받는 것이 좋습니다.
+  - Spring Boot에서는 `application.properties` 파일 내에서 `${ENV_VAR:defaultValue}` 구문을 사용하여 환경 변수가 존재하지 않을 경우 사용할 기본값을 지정할 수 있어 유연한 설정이 가능합니다.
 
 - **코드 청결성의 중요성**
   - 사용되지 않는 `import` 구문은 코드 가독성을 해치고 잠재적인 혼란을 야기할 수 있습니다. IDE의 `Optimize Imports` 기능을 활용하거나 주기적인 코드 리뷰를 통해 코드를 항상 최적의 상태로 깔끔하게 유지하는 것이 좋습니다.
