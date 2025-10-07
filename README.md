@@ -31,7 +31,7 @@
 ## 🛠️ 기술 스택
 
 - **언어**: Java 24
-- **프레임워크**: Spring Boot 3.5.4
+- **프레임워크**: Spring Boot 3.5.6
 - **인증/인가**: Spring Security, JWT (jjwt 라이브러리)
 - **데이터베이스**: MySQL (운영), H2 (테스트)
 - **빌드 도구**: Gradle

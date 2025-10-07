@@ -13,7 +13,7 @@ Spring Boot와 JWT(JSON Web Token)를 사용하여 기본적인 인증 시스템
 ### 1.2. 기술 스택
 
 - **언어**: Java 24
-- **프레임워크**: Spring Boot 3.5.4
+- **프레임워크**: Spring Boot 3.5.6
 - **데이터베이스**: MySQL (운영), H2 (테스트)
 - **인증**: Spring Security, JWT (jjwt 라이브러리)
 - **빌드 도구**: Gradle
