@@ -9,6 +9,8 @@ import dev.flynnpark.community.user.dto.UserResponseForPost;
 import dev.flynnpark.community.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,5 +47,21 @@ public class PostService {
                 .createdAt(savedPost.getCreatedAt())
                 .updatedAt(savedPost.getUpdatedAt())
                 .build();
+    }
+
+    public Page<PostResponse> list(Pageable pageable) {
+        Page<Post> posts = postRepository.findAll(pageable);
+        return posts.map(post -> PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .author(UserResponseForPost.builder()
+                        .id(post.getAuthor().getId())
+                        .nickname(post.getAuthor().getNickname())
+                        .roles(post.getAuthor().getRoles())
+                        .build())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .build());
     }
 }
