@@ -36,5 +36,11 @@ public class PostController {
         Page<PostResponse> posts = postService.list(pageable);
         return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK.value(), "게시글 목록이 성공적으로 조회되었습니다.", posts));
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CommonResponse<PostResponse>> getPost(@PathVariable Long id) {
+        PostResponse postResponse = postService.getPost(id);
+        return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK.value(), "게시글이 성공적으로 조회되었습니다.", postResponse));
+    }
 }
                 

@@ -7,6 +7,7 @@ import dev.flynnpark.community.post.repository.PostRepository;
 import dev.flynnpark.community.user.entity.User;
 import dev.flynnpark.community.user.dto.UserResponseForPost;
 import dev.flynnpark.community.user.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.data.domain.Page;
@@ -63,5 +64,23 @@ public class PostService {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build());
+    }
+
+    public PostResponse getPost(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Post not found with id: " + id));
+
+        return PostResponse.builder()
+                .id(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .author(UserResponseForPost.builder()
+                        .id(post.getAuthor().getId())
+                        .nickname(post.getAuthor().getNickname())
+                        .roles(post.getAuthor().getRoles())
+                        .build())
+                .createdAt(post.getCreatedAt())
+                .updatedAt(post.getUpdatedAt())
+                .build();
     }
 }
