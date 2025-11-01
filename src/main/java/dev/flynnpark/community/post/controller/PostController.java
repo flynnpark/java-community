@@ -1,12 +1,12 @@
 package dev.flynnpark.community.post.controller;
 
+import dev.flynnpark.community.post.dto.PaginatedPostResponse;
 import dev.flynnpark.community.post.dto.PostCreateRequest;
 import dev.flynnpark.community.post.dto.PostResponse;
 import dev.flynnpark.community.post.service.PostService;
 import dev.flynnpark.community.response.CommonResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +32,8 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<CommonResponse<Page<PostResponse>>> listPosts(Pageable pageable) {
-        Page<PostResponse> posts = postService.list(pageable);
+    public ResponseEntity<CommonResponse<PaginatedPostResponse>> listPosts(Pageable pageable) {
+        PaginatedPostResponse posts = postService.list(pageable);
         return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK.value(), "게시글 목록이 성공적으로 조회되었습니다.", posts));
     }
 
@@ -43,4 +43,3 @@ public class PostController {
         return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK.value(), "게시글이 성공적으로 조회되었습니다.", postResponse));
     }
 }
-                

@@ -1,5 +1,6 @@
 package dev.flynnpark.community.post.service;
 
+import dev.flynnpark.community.post.dto.PaginatedPostResponse;
 import dev.flynnpark.community.post.dto.PostCreateRequest;
 import dev.flynnpark.community.post.dto.PostResponse;
 import dev.flynnpark.community.post.entity.Post;
@@ -50,9 +51,9 @@ public class PostService {
                 .build();
     }
 
-    public Page<PostResponse> list(Pageable pageable) {
+    public PaginatedPostResponse list(Pageable pageable) {
         Page<Post> posts = postRepository.findAll(pageable);
-        return posts.map(post -> PostResponse.builder()
+        Page<PostResponse> postResponses = posts.map(post -> PostResponse.builder()
                 .id(post.getId())
                 .title(post.getTitle())
                 .content(post.getContent())
@@ -64,6 +65,7 @@ public class PostService {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build());
+        return PaginatedPostResponse.of(postResponses);
     }
 
     public PostResponse getPost(Long id) {
