@@ -39,4 +39,9 @@ public class Post {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

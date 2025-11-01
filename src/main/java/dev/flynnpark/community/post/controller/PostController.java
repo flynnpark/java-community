@@ -3,6 +3,7 @@ package dev.flynnpark.community.post.controller;
 import dev.flynnpark.community.post.dto.PaginatedPostResponse;
 import dev.flynnpark.community.post.dto.PostCreateRequest;
 import dev.flynnpark.community.post.dto.PostResponse;
+import dev.flynnpark.community.post.dto.PostUpdateRequest;
 import dev.flynnpark.community.post.service.PostService;
 import dev.flynnpark.community.response.CommonResponse;
 import jakarta.validation.Valid;
@@ -41,5 +42,14 @@ public class PostController {
     public ResponseEntity<CommonResponse<PostResponse>> getPost(@PathVariable Long id) {
         PostResponse postResponse = postService.getPost(id);
         return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK.value(), "게시글이 성공적으로 조회되었습니다.", postResponse));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CommonResponse<PostResponse>> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userEmail = authentication.getName();
+
+        PostResponse postResponse = postService.updatePost(id, request, userEmail);
+        return ResponseEntity.ok(CommonResponse.success(HttpStatus.OK.value(), "게시글이 성공적으로 수정되었습니다.", postResponse));
     }
 }
